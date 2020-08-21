@@ -28,17 +28,29 @@ We have been provided with `train_v2.csv` and `test_v.csv`.
 
 Each .csv files has the data for the transactions for number of store vistis
 **fullVisitorId** - A unique identifier for each user of the Google Merchandise Store. Our final submission will be dependent on this and will be used for aggregation.
+
 **channelGrouping** - The channel via which the user came to the Store.
+
 **date** - The date on which the user visited the Store.
+
 **device** - The specifications for the device used to access the Store.(_json column_)
+
 **geoNetwork** - This section contains information about the geography of the user.(_json column_)
+
 **socialEngagementType** - Engagement type, either "Socially Engaged" or "Not Socially Engaged".
+
 **totals** - This section contains aggregate values across the session.(_json column_)
+
 **trafficSource** - This section contains information about the Traffic Source from which the session originated.(_json column_)
+
 **visitId** - An identifier for this session. This is part of the value usually stored as the _utmb cookie. This is only unique to the user. For a completely unique ID, you should use a combination of fullVisitorId and visitId.
+
 **visitNumber** - The session number for this user. If this is the first session, then this is set to 1.
+
 **visitStartTime** - The timestamp (expressed as POSIX time).
+
 **hits** - This row and nested fields are populated for any and all types of hits. Provides a record of all page visits.
+
 **customDimensions** - This section contains any user-level or session-level custom dimensions that are set for a session. This is a repeated field and has an entry for each dimension that is set.(_json column_)
 
 _json column_: As we can see, there are few columns that are compressed in json format, we will normalize and convert it to normal feature.
@@ -81,6 +93,7 @@ As we can see there are alot of categories. For this feature we have 129 categor
 Since all non revenue generating data points are considered as zero, our model is only expected to predict greater than equal to **0**. 
 Let's look at the percent of customers per browser.
 ![](https://i.ibb.co/MSmYsBD/device-browser-use.png)
+
 As we can see after, Opera its been used by very customers. Hence we only keep the most popular browsers.
 
 ```python
@@ -94,6 +107,7 @@ Now we can see that the number of unique browsers has reduced significantly.
 
 Please note that the goal of doing this preprocessing is not to use one hot encoding, but to remove the outliers during the data preprocessing phase. This is only to reduce the cardinality of some of the features.
 
+This will be particullarly helpfull when 
 
 
 
