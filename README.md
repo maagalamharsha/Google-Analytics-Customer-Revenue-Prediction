@@ -57,7 +57,7 @@ As we can see from this plot, the data is very highly skewwed. Very small number
 Lets look at all the features we get after flatening all the json columns.
 ![](https://i.ibb.co/FYh7q0q/info.png)
 
-#### Exploratory Data Analysis
+#### Exploratory Data Analysis & Data Pre-processing:
 **totals.transactionRevenue** is out target variable. We have 1,708,337 data points in train data. 
 Lets look at the univarient plots for target variable
 ![](https://i.ibb.co/LngbfHZ/target-univariant.png "target variable PDF")
@@ -78,4 +78,23 @@ But some of the features contains like about 100+ unique categories. For Ex: dev
 
 As we can see there are alot of categories. For this feature we have 129 categories. As we can see in the plot. Only few of the categories are repeating resonable times rest of them are like outliers. Most of them are repeating less than ten times. So we can understand that the categories that are repeating few times are not the reason for generating revenue. 
 
-Since all non revenue generating data points are considered as zero, our model is only expected to predict greater than equal to **0**
+Since all non revenue generating data points are considered as zero, our model is only expected to predict greater than equal to **0**. 
+Let's look at the percent of customers per browser.
+![](https://i.ibb.co/MSmYsBD/device-browser-use.png)
+As we can see after, Opera its been used by very customers. Hence we only keep the most popular browsers.
+
+```python
+popular_browsers = ['Chrome','Safari','Firefox','Internet Explorer','Android Webview','Edge','Samsung Internet','Opera Mini','Safari (in-app)','Opera']
+train_df['device.browser'] = train_df['device.browser'].apply(lambda x: x if x in popular_browsers else 'unpopular_browser')
+```
+With this code we are limiting the number of categories in this feature.
+After preprocessing we will be getting the below bar plot of browser counts.
+![](https://i.ibb.co/Vgdckrt/device-browser-after-grouping-few-categories.png)
+Now we can see that the number of unique browsers has reduced significantly.
+
+Please note that the goal of doing this preprocessing is not to use one hot encoding, but to remove the outliers during the data preprocessing phase. This is only to reduce the cardinality of some of the features.
+
+
+
+
+
