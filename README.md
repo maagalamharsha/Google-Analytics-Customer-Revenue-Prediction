@@ -202,21 +202,17 @@ The revenue generated has been fairly consistent over the years. But please do n
 * This is a plot of date vs. transaction.revenue.
 * The sales are mostly evenly split over all the days, except for the first part of first week.
 
-##### Training Methodology:
+##### **Training Methodology**:
 
-All the features that have some categorical data will go through some of the data preprocessing techniques as above. Now lets understand the provided data for building a model. We were provided with Data from August 2016 to October 2018, as a whole when including train and test data but we are predicting for December 2018 to January 2019. This means that for those submission periods we don't have the data. So even though we have the test data the target variable is in future, so the transaction.revenue that is provided for test data is for that period.
+All the features that have some categorical data will go through some of the data preprocessing techniques as above. Now lets understand the provided data for building a model. We were provided with Data from ```August 2016``` to ```October 2018```, as a whole when including train and test data but we are predicting for ```December 2018``` to ```January 2019```. This means that for those submission periods we don't have the data. So even though we have the test data the target variable is in future, so the transaction.revenue that is provided for test data is for that period.
 
-Since we are predicting for future we have to we train the model several time by fixing a particular training window for X and future training window for our response variable(```totals.transactionRevenue```).
+Since we are predicting for future we have to we train the model several time by fixing a particular training window for ```X``` and future training window for our ***response variable***(```totals.transactionRevenue```).
 
-##### Window Aggregation:
+##### **Window Aggregation**:
 
-The table will show all the train and repose windows. So the training phase will be done for each period but the test will remain same for all the training phases.
+The table will show all the train and repose windows. So the training phase will be done for each period but the test will remain same for all the training phases.  
 
-##### **Why are we doing this?**
-
-
-
-| time_from | time_end | response_window_from | response_window_end |
+| train_time_from | train_time_end | response_window_from | response_window_end |
 | :---: | :---: | :---: | :---: |
 | 2016-08-24 | 2017-02-01 | 2017-04-01 | 2017-06-01 |
 | 2016-10-24   | 2017-06-01 | 2017-08-01 | 2017-10-01 |
@@ -229,7 +225,20 @@ The table will show all the train and repose windows. So the training phase will
 | 2017-12-24 | 2018-08-01 |2018-10-01 |2018-12-01 |
 | 2018-02-23 | 2018-10-01 |2018-12-01 |2019-01-01 |
 
+##### **Why are we doing this?**
+
+The objective is to predict the total transaction.revenue for each customer not the revenue of each session or visitID.  
+  
+We split the data based on time because, if a person buy something in 2016 and is also a resular vistor over the years. The probability that he is going to spend higher amount in 2019 would be much lesser than a person who first visited the store in 2018.  
+
+That is the reason we train the model accross various time frames and predict the revenue on test data at each time frame. 
+
+We will average all of the observations at the end for our final prediction.
 
 
+##### **Model Selection**:
 
+We will try three advanced ML models first and then try to stack it.
+
+**XGBOOST**:
 
