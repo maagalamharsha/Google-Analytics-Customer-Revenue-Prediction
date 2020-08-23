@@ -85,6 +85,7 @@ The PDF of totals.transactionRevenue, is almost normal, with mean at 17.5.
 This is the bar plots of **channelGrouping** indicating the counts on y_axis.
 We can see that there are resonable number of unique categories in this features.
 
+##### device.browsers
 But some of the features contains like about 100+ unique categories. For Ex: device.browsers
 ![](https://i.ibb.co/2Pqtmsm/device-browser.png)
 
@@ -107,7 +108,127 @@ Now we can see that the number of unique browsers has reduced significantly.
 
 Please note that the goal of doing this preprocessing is not to use one hot encoding, but to remove the outliers during the data preprocessing phase. This is only to reduce the cardinality of some of the features.
 
-This will be particullarly helpfull when 
+This will be particullarly helpfull when we have many unique categories. There are few features for which the unique categories are more than 500 categories. In that case we can limit the number of categoeis by looking at the distribution of the category value counts.
+
+##### geoNetwork.city
+
+This feture contains the name of the source city. We have the same problem as above. Like there are about 950+ unique cities. So it would not be possible to manually select few cities from our intuition.
+
+Let's look at the PDF of the value counts all the cities.
+![](https://i.ibb.co/XCq9GYx/device-city-pdf.png)
+
+**Observation**:
+As we can observe from the percentile plot on the left, there are many cities that are repeating with very less frequency compared to the cities from 90th to 100th percentile. The plot on the right is same plot but only between 0th and 90th percentile.
+
+As we can see from these plots, only after 80th percentile that the cities are repeating for more than 250, we will be grouping all of the cities with lesser frequency into a single category. By performing this we dont loose much information because 250 is just a fraction of the size in our total train data.
+
+**Code**:
+```python
+pre_processed_cities = []
+for city_name,city_count in zip(train_df['geoNetwork.city'].value_counts().index,train_df['geoNetwork.city'].value_counts()):
+  if ((city_count<(np.percentile(city_percentiles_values,80)) and (max(train_df['totals.transactionRevenue'][train_df['geoNetwork.city']==city_name])<1))):
+    pass
+  else:
+    pre_processed_cities.append(city_name)
+
+train_df['geoNetwork.city'] = train_df['geoNetwork.city'].apply(lambda x: x if x in pre_processed_cities else 'unknown_city')
+```
+After perfroming this pre-processing we still get about 185 unique cities.
+
+There are few features which has similar problem. We have performed same pre-processing methodology as above.
+**Columns with many category** - geoNetwork.country, geoNetwork.city,geoNetwork.city
+
+**totals.hits**
+totals.hits shows the number of times a store (or) product page URL has been access before making a transantion.
+
+![](https://i.ibb.co/m6bvMcR/total-hits.png)
+Observation:
+* Most of the transactions are happening below hits = 150.
+* As we can see there few outliers in the data but since the percentage of outliers very less we will continue to keep the data as is.
+
+**trafficSource.source**:
+This feature will hold the value of the source, i.e like the website from where its been redirected from. But the problem is we have categories which mean the same source name but the wording is not the same.Please see the example below.
+![](https://i.ibb.co/cDcCX2p/source-words.png)
+As highlighted above google, sites.google.com and group.google.com are all from the same parent website but its been termed as different. So we are going to group all them into 'google'. And same kind of grouping has been done for the major websites.
+
+```python
+def standardize_traffic_source(val):
+    if 'google' in val:
+        return 'google'
+    elif 'youtube' in val:
+        return 'youtube'
+    elif 'facebook' in val:
+        return 'facebook'
+    elif 'yahoo' in val:
+        return 'yahoo'
+    elif 'baidu' in val:
+        return 'baidu'
+    elif 'aol' in val:
+        return 'aol'
+    elif 'quora' in val:
+        return 'quora'
+    elif 'reddit' in val:
+        return 'reddit'
+    elif 'pinterest' in val:
+        return 'pinterest'
+    elif 'bing' in val:
+        return 'bing'
+    elif 'wow' in val:
+        return 'wow'
+    elif 'blackboard' in val:
+        return 'blackboard'
+    elif len(val)>20:
+        return 'Other'
+    else:
+        return val
+```
+
+With this script, we group all the source websites into single group based on the parent website.
+
+**Year**:
+![](https://i.ibb.co/jkPHD6t/year.png)
+**Observations**:
+The revenue generated has been fairly consistent over the years. But please do note that the data for 2018 is only available untill April 2018.
+
+**Month**:
+![](https://i.ibb.co/DpVG3V3/month.png)
+**Observation**:
+* We can see from this plot that there is a pattern in the way revenue has been distributed over the months.
+* The revenue peaks out in June and August, and generally we can expect more sales during Summer sales.
+* We can also note that the sales reduces drasatically during fall season suggesting that the products in the store are not catered towards fall holiday season.
+
+**Days**:
+![](https://i.ibb.co/7pWRZdT/day.png)
+* This is a plot of date vs. transaction.revenue.
+* The sales are mostly evenly split over all the days, except for the first part of first week.
+
+##### Training Methodology:
+
+All the features that have some categorical data will go through some of the data preprocessing techniques as above. Now lets understand the provided data for building a model. We were provided with Data from August 2016 to October 2018, as a whole when including train and test data but we are predicting for December 2018 to January 2019. This means that for those submission periods we don't have the data. So even though we have the test data the target variable is in future, so the transaction.revenue that is provided for test data is for that period.
+
+Since we are predicting for future we have to we train the model several time by fixing a particular training window for X and future training window for our response variable(```totals.transactionRevenue```).
+
+##### Window Aggregation:
+
+The table will show all the train and repose windows. So the training phase will be done for each period but the test will remain same for all the training phases.
+
+##### **Why are we doing this?**
+
+
+
+| time_from | time_end | response_window_from | response_window_end |
+| :---: | :---: | :---: | :---: |
+| 2016-08-24 | 2017-02-01 | 2017-04-01 | 2017-06-01 |
+| 2016-10-24   | 2017-06-01 | 2017-08-01 | 2017-10-01 |
+| 2016-12-24  | 2017-08-01 | 2017-10-01 | 2017-12-01 |
+| 2017-02-23 | 2017-10-01 | 2017-12-01 | 2018-02-01 |
+| 2017-04-25 | 2017-12-01 | 2018-02-01 | 2018-04-01 |
+| 2017-06-26 | 2018-02-01 |2018-04-01 | 2018-06-01 |
+| 2017-08-24 | 2018-04-01 |2018-06-01 | 2018-08-01 |
+| 2017-10-24 | 2018-06-01 |2018-08-01 |2018-10-01 |
+| 2017-12-24 | 2018-08-01 |2018-10-01 |2018-12-01 |
+| 2018-02-23 | 2018-10-01 |2018-12-01 |2019-01-01 |
+
 
 
 
